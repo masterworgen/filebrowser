@@ -151,7 +151,6 @@ import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import Errors from "@/views/Errors.vue";
-import QrcodeVue from "qrcode.vue";
 import Item from "@/components/files/ListingItem.vue";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -188,56 +187,9 @@ const req = computed(() => fileStore.req);
 
 // Define computes
 
-const icon = computed(() => {
-  if (req.value === null) return "insert_drive_file";
-  if (req.value.isDir) return "folder";
-  if (req.value.type === "image") return "insert_photo";
-  if (req.value.type === "audio") return "volume_up";
-  if (req.value.type === "video") return "movie";
-  return "insert_drive_file";
-});
-
-const link = computed(() => (req.value ? api.getDownloadURL(req.value) : ""));
-const raw = computed(() => {
-  return req.value
-    ? req.value.items[fileStore.selected[0]].url.replace(
-        /share/,
-        "api/public/dl"
-      ) +
-        "?token=" +
-        token.value
-    : "";
-});
-const inlineLink = computed(() =>
-  req.value ? api.getDownloadURL(req.value, true) : ""
-);
-const humanSize = computed(() => {
-  if (req.value) {
-    return req.value.isDir
-      ? req.value.items.length
-      : filesize(req.value.size ?? 0);
-  } else {
-    return "";
-  }
-});
-const humanTime = computed(() => dayjs(req.value?.modified).fromNow());
-const modTime = computed(() =>
-  req.value
-    ? new Date(Date.parse(req.value.modified)).toLocaleString()
-    : new Date().toLocaleString()
-);
 
 // Functions
 const base64 = (name: any) => Base64.encodeURI(name);
-const play = () => {
-  if (tag.value) {
-    audio.value?.pause();
-    tag.value = false;
-  } else {
-    audio.value?.play();
-    tag.value = true;
-  }
-};
 const fetchData = async () => {
   fileStore.reload = false;
   fileStore.selected = [];
