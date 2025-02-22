@@ -13,28 +13,13 @@ builds:
     main: main.go
     binary: filebrowser
     goos:
-      - darwin
       - linux
-      - windows
-      - freebsd
     goarch:
       - amd64
-      - 386
-      - arm
-      - arm64
-      - riscv64
-    goarm:
-      - 5
-      - 6
-      - 7
-    ignore:
-      - goos: darwin
-        goarch: 386
-      - goos: freebsd
-        goarch: arm
+    ignore: []
 
 archives:
-  -
+  - 
     name_template: "{{.Os}}-{{.Arch}}{{if .Arm}}v{{.Arm}}{{end}}-{{ .ProjectName }}"
     formats: [ 'tar.gz' ]
     format_overrides:
@@ -42,7 +27,7 @@ archives:
         formats: [ 'zip' ]
 
 dockers:
-  -
+  - 
     dockerfile: Dockerfile
     use: buildx
     build_flag_templates:
@@ -61,67 +46,9 @@ dockers:
     extra_files:
       - docker_config.json
       - healthcheck.sh
-  -
-    dockerfile: Dockerfile
-    use: buildx
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--platform=linux/arm64"
-    goos: linux
-    goarch: arm64
-    image_templates:
-      - "masterworgen/filebrowser:{{ .Tag }}-arm64"
-      - "masterworgen/filebrowser:v{{ .Major }}-arm64"
-    extra_files:
-      - docker_config.json
-      - healthcheck.sh
-  -
-    dockerfile: Dockerfile
-    use: buildx
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--platform=linux/arm/v6"
-    goos: linux
-    goarch: arm
-    goarm: '6'
-    image_templates:
-      - "masterworgen/filebrowser:{{ .Tag }}-armv6"
-      - "masterworgen/filebrowser:v{{ .Major }}-armv6"
-    extra_files:
-      - docker_config.json
-      - healthcheck.sh
-  -
-    dockerfile: Dockerfile
-    use: buildx
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--platform=linux/arm/v7"
-    goos: linux
-    goarch: arm
-    goarm: '7'
-    image_templates:
-      - "masterworgen/filebrowser:{{ .Tag }}-armv7"
-      - "masterworgen/filebrowser:v{{ .Major }}-armv7"
-    extra_files:
-      - docker_config.json
-      - healthcheck.sh
+
 ## s6 based docker images
-  -
+  - 
     dockerfile: Dockerfile.s6
     use: buildx
     build_flag_templates:
@@ -140,63 +67,23 @@ dockers:
     extra_files:
       - docker/root
       - healthcheck.sh
-  -
-    dockerfile: Dockerfile.s6.aarch64
-    use: buildx
-    build_flag_templates:
-      - "--pull"
-      - "--label=org.opencontainers.image.created={{.Date}}"
-      - "--label=org.opencontainers.image.name={{.ProjectName}}"
-      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
-      - "--label=org.opencontainers.image.version={{.Version}}"
-      - "--label=org.opencontainers.image.source={{.GitURL}}"
-      - "--platform=linux/arm64"
-    goos: linux
-    goarch: arm64
-    image_templates:
-      - "masterworgen/filebrowser:{{ .Tag }}-arm64-s6"
-      - "masterworgen/filebrowser:v{{ .Major }}-arm64-s6"
-    extra_files:
-      - docker/root
-      - healthcheck.sh
+
 docker_manifests:
   - name_template: "masterworgen/filebrowser:latest"
     image_templates:
       - "masterworgen/filebrowser:{{ .Tag }}-amd64"
-      - "masterworgen/filebrowser:{{ .Tag }}-arm64"
-      - "masterworgen/filebrowser:{{ .Tag }}-armv7"
   - name_template: "masterworgen/filebrowser:{{ .Tag }}"
     image_templates:
       - "masterworgen/filebrowser:{{ .Tag }}-amd64"
-      - "masterworgen/filebrowser:{{ .Tag }}-arm64"
-      - "masterworgen/filebrowser:{{ .Tag }}-armv7"
   - name_template: "masterworgen/filebrowser:v{{ .Major }}"
     image_templates:
       - "masterworgen/filebrowser:v{{ .Major }}-amd64"
-      - "masterworgen/filebrowser:v{{ .Major }}-arm64"
-      - "masterworgen/filebrowser:v{{ .Major }}-armv7"
-## s6 image manifests
   - name_template: "masterworgen/filebrowser:s6"
     image_templates:
       - "masterworgen/filebrowser:{{ .Tag }}-amd64-s6"
-      - "masterworgen/filebrowser:{{ .Tag }}-arm64-s6"
   - name_template: "masterworgen/filebrowser:{{ .Tag }}-s6"
     image_templates:
       - "masterworgen/filebrowser:{{ .Tag }}-amd64-s6"
-      - "masterworgen/filebrowser:{{ .Tag }}-arm64-s6"
   - name_template: "masterworgen/filebrowser:v{{ .Major }}-s6"
     image_templates:
       - "masterworgen/filebrowser:v{{ .Major }}-amd64-s6"
-      - "masterworgen/filebrowser:v{{ .Major }}-arm64-s6"
-brews:
-  - name: filebrowser
-    repository:
-      owner: filebrowser
-      name: homebrew-tap
-    directory: Formula
-    homepage: https://filebrowser.org
-    commit_author:
-      name: FileBrowser Robot
-      email: robot@filebrowser.org
-    description: File Browser is a create-your-own-cloud-kind of software where you can install it on a server, direct it to a path and then access your files through a nice web interface
-    license: "MIT"
