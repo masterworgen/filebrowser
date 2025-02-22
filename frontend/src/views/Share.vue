@@ -84,19 +84,21 @@
             {{ t("files.files") }}
           </div>
           <div id="listing" class="file-icons mosaic">
-            <item
-              v-for="item in req.items.slice(0, showLimit)"
-              :key="base64(item.name)"
-              v-bind:index="item.index"
-              v-bind:name="item.name"
-              v-bind:isDir="item.isDir"
-              v-bind:url="item.url"
-              v-bind:modified="item.modified"
-              v-bind:type="item.type"
-              v-bind:size="item.size"
-              v-bind:path="item.path"
-            >
-            </item>
+            <div>
+              <item
+                v-for="item in req.items.slice(0, showLimit)"
+                :key="base64(item.name)"
+                v-bind:index="item.index"
+                v-bind:name="item.name"
+                v-bind:isDir="item.isDir"
+                v-bind:url="item.url"
+                v-bind:modified="item.modified"
+                v-bind:type="item.type"
+                v-bind:size="item.size"
+                v-bind:path="item.path"
+              >
+              </item>
+            </div>
             <div
               v-if="req.items.length > showLimit"
               class="item"
