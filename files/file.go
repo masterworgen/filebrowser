@@ -23,8 +23,8 @@ import (
 
 	"github.com/spf13/afero"
 
-	fbErrors "github.com/filebrowser/filebrowser/v2/errors"
-	"github.com/filebrowser/filebrowser/v2/rules"
+	fbErrors "github.com/masterworgen/filebrowser/v2/errors"
+	"github.com/masterworgen/filebrowser/v2/rules"
 )
 
 const PermFile = 0644

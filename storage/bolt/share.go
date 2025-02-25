@@ -3,11 +3,10 @@ package bolt
 import (
 	"errors"
 
-	"github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
 
-	fbErrors "github.com/filebrowser/filebrowser/v2/errors"
-	"github.com/filebrowser/filebrowser/v2/share"
+	fbErrors "github.com/masterworgen/filebrowser/v2/errors"
+	"github.com/masterworgen/filebrowser/v2/share"
 )
 
 type shareBackend struct {
@@ -74,4 +73,14 @@ func (s shareBackend) Delete(hash string) error {
 		return nil
 	}
 	return err
+}
+
+func (s shareBackend) GetShareByCode(shareCode string) (*share.Link, error) {
+	var v share.Link
+	err := s.db.One("Hash", shareCode, &v)
+	if errors.Is(err, storm.ErrNotFound) {
+		return nil, fbErrors.ErrNotExist
+	}
+
+	return &v, err
 }
