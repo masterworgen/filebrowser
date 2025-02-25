@@ -3,6 +3,7 @@ package bolt
 import (
 	"errors"
 
+	"github.com/asdine/storm/v3"
 	"github.com/asdine/storm/v3/q"
 
 	fbErrors "github.com/masterworgen/filebrowser/v2/errors"
