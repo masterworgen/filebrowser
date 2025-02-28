@@ -259,7 +259,9 @@ const hasPrevious = computed(() => previousLink.value !== "");
 const hasNext = computed(() => nextLink.value !== "");
 
 const downloadUrl = computed(() => {
-  fileStore.req ? api.getDownloadURL(fileStore.req, true, props.share) : "";
+  return fileStore.req
+    ? api.getDownloadURL(fileStore.req, true, props.share)
+    : "";
 });
 
 const raw = computed(() => {
@@ -390,7 +392,7 @@ const updatePreview = async () => {
               /\?shareCode=[^/]+/,
               ""
             );
-            previousRaw.value = cleanPreviousRaw(previousRaw.value, dirs);
+            previousRaw.value = cleanPreviousRaw(previousRaw.value);
           }
           break;
         }
@@ -402,7 +404,7 @@ const updatePreview = async () => {
           if (props.share) {
             nextLink.value = nextLink.value.replace(/\?shareCode=[^/]+/, "");
             nextLink.value = nextLink.value.replace("files", "share");
-            nextRaw.value = cleanPreviousRaw(nextRaw.value, dirs);
+            nextRaw.value = cleanPreviousRaw(nextRaw.value);
           }
           break;
         }
@@ -413,7 +415,7 @@ const updatePreview = async () => {
   }
 };
 
-const cleanPreviousRaw = (url, dirs) => {
+const cleanPreviousRaw = (url) => {
   const parts = url.split("/"); // Разбиваем URL в массив
   const bigIndex = parts.indexOf("big"); // Ищем индекс "big"
 
@@ -458,11 +460,6 @@ const close = () => {
 };
 
 const download = () => {
-  apiPub.download(
-    null,
-    props.hash!,
-    props.token!,
-    fileStore.req!.path
-  );
+  apiPub.download(null, props.hash!, props.token!, fileStore.req!.path);
 };
 </script>
