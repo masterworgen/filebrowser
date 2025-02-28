@@ -3,7 +3,6 @@ package cmd
 import (
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"io"
 	"io/fs"
 	"log"
