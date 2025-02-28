@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/spf13/afero"
 	"io"
 	"net/http"
 
@@ -34,22 +35,43 @@ type FileCache interface {
 	Delete(ctx context.Context, key string) error
 }
 
+type RequestBody struct {
+	Auth   string `json:"auth"`
+	Inline bool   `json:"inline"`
+	Key    int64  `json:"key"`
+	Share  string `json:"share"`
+}
+
 func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, resizePreview bool) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-		if !d.user.Perm.Download {
-			return http.StatusAccepted, nil
-		}
 		vars := mux.Vars(r)
+
+		// Пробуем декодировать JSON из тела запроса
+		sharedCode := r.URL.Query().Get("share")
+
+		// Логируем тело запроса для отладки
+		zalupa, err := d.store.Share.GetByHash(sharedCode)
+		fmt.Println("Request Body:", zalupa)
+		// Выводим путь для отладки
+		fmt.Println("Path from URL:", vars["path"])
 
 		previewSize, err := ParsePreviewSize(vars["size"])
 		if err != nil {
 			return http.StatusBadRequest, err
 		}
 
+		path := "/" + vars["path"] // По умолчанию берём путь из запроса
+
+		if zalupa != nil { // Проверяем, что получили объект из GetByHash
+			path = zalupa.Path + "/" + vars["path"]
+		}
+		Fs := afero.NewBasePathFs(afero.NewOsFs(), "C:\\Projects\\filebrowser")
+
+		// Пробуем использовать путь как есть
 		file, err := files.NewFileInfo(&files.FileOptions{
-			Fs:         d.user.Fs,
-			Path:       "/" + vars["path"],
-			Modify:     d.user.Perm.Modify,
+			Fs:         Fs,
+			Path:       path, // Путь должен быть с учётом вложенных папок
+			Modify:     false,
 			Expand:     true,
 			ReadHeader: d.server.TypeDetectionByHeader,
 			Checker:    d,

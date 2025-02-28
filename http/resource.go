@@ -21,9 +21,18 @@ import (
 )
 
 var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+	queryParams, err := url.ParseQuery(r.URL.RawQuery)
+	path := r.URL.Path
+
+	zalupa, err := d.store.Share.GetByHash(queryParams.Get("shareCode"))
+	if zalupa != nil {
+		path = zalupa.Path
+	}
+	fmt.Println("Request Body:", zalupa)
+
 	file, err := files.NewFileInfo(&files.FileOptions{
 		Fs:         d.user.Fs,
-		Path:       r.URL.Path,
+		Path:       path,
 		Modify:     d.user.Perm.Modify,
 		Expand:     true,
 		ReadHeader: d.server.TypeDetectionByHeader,

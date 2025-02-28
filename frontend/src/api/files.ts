@@ -185,9 +185,10 @@ export async function checksum(url: string, algo: ChecksumAlg) {
   return (await data.json()).checksums[algo];
 }
 
-export function getDownloadURL(file: ResourceItem, inline: any) {
+export function getDownloadURL(file: ResourceItem, inline: any, shareCode?: string) {
   const params = {
     ...(inline && { inline: "true" }),
+    shareCode: shareCode
   };
 
   return createURL("api/raw" + file.path, params);
@@ -197,6 +198,15 @@ export function getPreviewURL(file: ResourceItem, size: string) {
   const params = {
     inline: "true",
     key: Date.parse(file.modified),
+  };
+
+  return createURL("api/preview/" + size + file.path, params);
+}
+export function getPreviewURLFromShare(file: ResourceItem, size: string, share: string) {
+  const params = {
+    inline: "true",
+    key: Date.parse(file.modified),
+    share: share
   };
 
   return createURL("api/preview/" + size + file.path, params);

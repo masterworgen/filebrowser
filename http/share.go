@@ -91,6 +91,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		defer r.Body.Close()
 	}
 
+	// Генерация уникального хеша для ссылки
 	bytes := make([]byte, 6) //nolint:gomnd
 	_, err := rand.Read(bytes)
 	if err != nil {
@@ -99,10 +100,9 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 
 	str := base64.URLEncoding.EncodeToString(bytes)
 
+	// Обработка срока действия ссылки
 	var expire int64 = 0
-
 	if body.Expires != "" {
-		//nolint:govet
 		num, err := strconv.Atoi(body.Expires)
 		if err != nil {
 			return http.StatusInternalServerError, err
@@ -123,11 +123,13 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		expire = time.Now().Add(add).Unix()
 	}
 
+	// Получаем хеш пароля, если он задан
 	hash, status, err := getSharePasswordHash(body)
 	if err != nil {
 		return status, err
 	}
 
+	// Генерация токена, если пароль задан
 	var token string
 	if len(hash) > 0 {
 		tokenBuffer := make([]byte, 96) //nolint:gomnd
@@ -137,8 +139,15 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		token = base64.URLEncoding.EncodeToString(tokenBuffer)
 	}
 
+	// Формирование пути с учетом всей вложенности
+	path := r.URL.Path
+	if strings.HasPrefix(path, "/share/") {
+		path = path[len("/share/"):] // Убираем префикс /share, оставляем только путь
+	}
+
+	// Создаем ссылку для общего доступа
 	s = &share.Link{
-		Path:         r.URL.Path,
+		Path:         path, // Путь должен включать все вложенные каталоги
 		Hash:         str,
 		Expire:       expire,
 		UserID:       d.user.ID,
@@ -146,6 +155,7 @@ var sharePostHandler = withPermShare(func(w http.ResponseWriter, r *http.Request
 		Token:        token,
 	}
 
+	// Сохраняем ссылку в базе данных
 	if err := d.store.Share.Save(s); err != nil {
 		return http.StatusInternalServerError, err
 	}

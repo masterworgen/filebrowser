@@ -18,6 +18,7 @@ type StorageBackend interface {
 }
 
 type Store interface {
+	GetByUserName(baseScope string, userName interface{}) (user *User, err error)
 	Get(baseScope string, id interface{}) (user *User, err error)
 	Gets(baseScope string) ([]*User, error)
 	Update(user *User, fields ...string) error
@@ -46,6 +47,17 @@ func NewStorage(back StorageBackend) *Storage {
 // is neither, a ErrInvalidDataType will be returned.
 func (s *Storage) Get(baseScope string, id interface{}) (user *User, err error) {
 	user, err = s.back.GetBy(id)
+	if err != nil {
+		return
+	}
+	if err := user.Clean(baseScope); err != nil {
+		return nil, err
+	}
+	return
+}
+
+func (s *Storage) GetByUserName(baseScope string, userName interface{}) (user *User, err error) {
+	user, err = s.back.GetBy(userName)
 	if err != nil {
 		return
 	}

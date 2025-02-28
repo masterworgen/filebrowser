@@ -34,7 +34,6 @@
         />
         <action
           :disabled="layoutStore.loading"
-          v-if="authStore.user?.perm.download"
           icon="file_download"
           :label="$t('buttons.download')"
           @action="download"
@@ -165,6 +164,7 @@ import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 
 import { files as api } from "@/api";
+import { pub as apiPub } from "@/api";
 import { createURL } from "@/api/utils";
 import { resizePreview } from "@/utils/constants";
 import url from "@/utils/url";
@@ -248,17 +248,23 @@ const layoutStore = useLayoutStore();
 const route = useRoute();
 const router = useRouter();
 
+const props = defineProps<{
+  share?: string;
+  hash?: string;
+  token?: string;
+}>();
+
 const hasPrevious = computed(() => previousLink.value !== "");
 
 const hasNext = computed(() => nextLink.value !== "");
 
-const downloadUrl = computed(() =>
-  fileStore.req ? api.getDownloadURL(fileStore.req, true) : ""
-);
+const downloadUrl = computed(() => {
+  fileStore.req ? api.getDownloadURL(fileStore.req, true, props.share) : "";
+});
 
 const raw = computed(() => {
   if (fileStore.req?.type === "image" && !fullSize.value) {
-    return api.getPreviewURL(fileStore.req, "big");
+    return api.getPreviewURLFromShare(fileStore.req, "big", props.share ?? "");
   }
 
   if (isEpub.value) {
@@ -359,7 +365,7 @@ const updatePreview = async () => {
   if (!listing.value) {
     try {
       const path = url.removeLastDir(route.path);
-      const res = await api.fetch(path);
+      const res = await api.fetch(`${path}?shareCode=${props.share}`);
       listing.value = res.items;
     } catch (e: any) {
       $showError(e);
@@ -378,6 +384,14 @@ const updatePreview = async () => {
         if (mediaTypes.includes(listing.value[j].type)) {
           previousLink.value = listing.value[j].url;
           previousRaw.value = prefetchUrl(listing.value[j]);
+          if (props.share) {
+            previousLink.value = previousLink.value.replace("files", "share");
+            previousLink.value = previousLink.value.replace(
+              /\?shareCode=[^/]+/,
+              ""
+            );
+            previousRaw.value = cleanPreviousRaw(previousRaw.value, dirs);
+          }
           break;
         }
       }
@@ -385,6 +399,11 @@ const updatePreview = async () => {
         if (mediaTypes.includes(listing.value[j].type)) {
           nextLink.value = listing.value[j].url;
           nextRaw.value = prefetchUrl(listing.value[j]);
+          if (props.share) {
+            nextLink.value = nextLink.value.replace(/\?shareCode=[^/]+/, "");
+            nextLink.value = nextLink.value.replace("files", "share");
+            nextRaw.value = cleanPreviousRaw(nextRaw.value, dirs);
+          }
           break;
         }
       }
@@ -394,6 +413,18 @@ const updatePreview = async () => {
   }
 };
 
+const cleanPreviousRaw = (url, dirs) => {
+  const parts = url.split("/"); // Разбиваем URL в массив
+  const bigIndex = parts.indexOf("big"); // Ищем индекс "big"
+
+  if (bigIndex !== -1 && bigIndex + 1 < parts.length) {
+    // Удаляем все, что после "big/" и нет в dirs
+    parts.splice(bigIndex + 1, 1);
+  }
+
+  return parts.join("/"); // Собираем обратно в строку
+};
+
 const prefetchUrl = (item: ResourceItem) => {
   if (item.type !== "image") {
     return "";
@@ -401,7 +432,7 @@ const prefetchUrl = (item: ResourceItem) => {
 
   return fullSize.value
     ? api.getDownloadURL(item, true)
-    : api.getPreviewURL(item, "big");
+    : api.getPreviewURLFromShare(item, "big", props.share ?? "");
 };
 
 const toggleSize = () => (fullSize.value = !fullSize.value);
@@ -426,5 +457,12 @@ const close = () => {
   router.push({ path: uri });
 };
 
-const download = () => window.open(downloadUrl.value);
+const download = () => {
+  apiPub.download(
+    null,
+    props.hash!,
+    props.token!,
+    fileStore.req!.path
+  );
+};
 </script>

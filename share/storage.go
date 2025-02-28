@@ -15,7 +15,6 @@ type StorageBackend interface {
 	Gets(path string, id uint) ([]*Link, error)
 	Save(s *Link) error
 	Delete(hash string) error
-	GetShareByCode(shareCode string) (*Link, error)
 }
 
 // Storage is a storage.

@@ -63,6 +63,7 @@ const props = defineProps<{
   index: number;
   readOnly?: boolean;
   path?: string;
+  share?: string;
 }>();
 
 const authStore = useAuthStore();
@@ -96,7 +97,9 @@ const thumbnailUrl = computed(() => {
     path: props.path,
     modified: props.modified,
   };
-
+  if (props.share) {
+    return api.getPreviewURLFromShare(file as Resource, "thumb", props.share)
+  }
   return api.getPreviewURL(file as Resource, "thumb");
 });
 

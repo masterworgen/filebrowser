@@ -5,13 +5,13 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/golang-jwt/jwt/v4/request"
-
 	fbErrors "github.com/masterworgen/filebrowser/v2/errors"
 	"github.com/masterworgen/filebrowser/v2/users"
 )
@@ -68,6 +68,20 @@ func withUser(fn handleFunc) handleFunc {
 	return func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		keyFunc := func(_ *jwt.Token) (interface{}, error) {
 			return d.settings.Key, nil
+		}
+
+		queryParams, err := url.ParseQuery(r.URL.RawQuery)
+
+		shareCode := queryParams.Get("share")
+		if shareCode == "" {
+			shareCode = queryParams.Get("shareCode")
+		}
+		if shareCode != "" {
+			d.user, err = d.store.Users.GetByUserName(d.server.Root, "guest")
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+			return fn(w, r, d)
 		}
 
 		var tk authToken

@@ -96,6 +96,7 @@
                 v-bind:type="item.type"
                 v-bind:size="item.size"
                 v-bind:path="item.path"
+                v-bind:share="shareCode"
               >
               </item>
             </div>
@@ -137,6 +138,7 @@
           </h2>
         </div>
       </div>
+      <preview v-bind:share="shareCode" v-if="isViewMode" v-bind:hash="hash" v-bind:token="token"></preview>
     </div>
   </div>
 </template>
@@ -153,10 +155,11 @@ import Item from "@/components/files/ListingItem.vue";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 import { computed, inject, onMounted, onBeforeUnmount, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { StatusError } from "@/api/utils";
 import { copy } from "@/utils/clipboard";
+import Preview from "@/views/files/Preview.vue";
 
 const error = ref<StatusError | null>(null);
 const showLimit = ref<number>(100);
@@ -178,11 +181,38 @@ watch(route, () => {
   showLimit.value = 100;
   fetchData();
 });
-
+const router = useRouter();
 const req = computed(() => fileStore.req);
+const isFirstInit = ref(true);
+const isViewMode = ref(false);
+const shareCode = computed(() => {
+  const url = window.location.href;
+  const match = url.match(/\/share\/([a-zA-Z0-9]+)/)[1];
+  return match;
+});
+watch(
+  () => route.path,
+  (value) => {
+    if (isFirstInit.value) {
+      isFirstInit.value = false;
+      if (value.includes(".png")) {
+        // Убираем .png из URL и заменяем URL без перезагрузки
+        const newPath = value.replace(/\/[^/]+\.png$/, ""); // Удаляем `/имя_файла.png`
+        router.replace(newPath);
+        return;
+      }
+      return;
+    }
+    if (value.includes(".png")) {
+      isViewMode.value = true;
+    } else {
+      isViewMode.value = false;
+    }
+  },
+  { immediate: true }
+);
 
 // Define computes
-
 
 // Functions
 const base64 = (name: any) => Base64.encodeURI(name);
@@ -208,7 +238,6 @@ const fetchData = async () => {
     file.hash = hash.value;
 
     token.value = file.token || "";
-
     fileStore.updateRequest(file);
     document.title = `${file.name} - ${document.title}`;
   } catch (err) {

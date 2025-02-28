@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -79,10 +80,18 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
+	queryParams, err := url.ParseQuery(r.URL.RawQuery)
+	path := r.URL.Path
+
+	zalupa, err := d.store.Share.GetByHash(queryParams.Get("shareCode"))
+	if zalupa != nil {
+		path = zalupa.Path
+	}
+	fmt.Println("Request Body:", zalupa)
 
 	file, err := files.NewFileInfo(&files.FileOptions{
 		Fs:         d.user.Fs,
-		Path:       r.URL.Path,
+		Path:       path,
 		Modify:     d.user.Perm.Modify,
 		Expand:     false,
 		ReadHeader: d.server.TypeDetectionByHeader,
