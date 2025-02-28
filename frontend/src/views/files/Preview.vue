@@ -415,7 +415,7 @@ const updatePreview = async () => {
   }
 };
 
-const cleanPreviousRaw = (url) => {
+const cleanPreviousRaw = (url: string) => {
   const parts = url.split("/"); // Разбиваем URL в массив
   const bigIndex = parts.indexOf("big"); // Ищем индекс "big"
 

@@ -187,7 +187,7 @@ const isFirstInit = ref(true);
 const isViewMode = ref(false);
 const shareCode = computed(() => {
   const url = window.location.href;
-  const match = url.match(/\/share\/([a-zA-Z0-9]+)/)[1];
+  const match = url.match(/\/share\/([a-zA-Z0-9]+)/)![1];
   return match;
 });
 watch(
