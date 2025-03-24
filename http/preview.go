@@ -65,7 +65,7 @@ func previewHandler(imgSvc ImgService, fileCache FileCache, enableThumbnails, re
 		if zalupa != nil { // Проверяем, что получили объект из GetByHash
 			path = zalupa.Path + "/" + vars["path"]
 		}
-		Fs := afero.NewBasePathFs(afero.NewOsFs(), "C:\\Projects\\filebrowser")
+		Fs := afero.NewBasePathFs(afero.NewOsFs(), "/mnt/ssd/data")
 
 		// Пробуем использовать путь как есть
 		file, err := files.NewFileInfo(&files.FileOptions{
